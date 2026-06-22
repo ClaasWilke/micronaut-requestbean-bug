@@ -1,27 +1,30 @@
-## Micronaut 5.0.2 Documentation
+# micronaut-requestbean-bug
 
-- [User Guide](https://docs.micronaut.io/5.0.2/guide/index.html)
-- [API Reference](https://docs.micronaut.io/5.0.2/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/5.0.2/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
----
+Minimal reproduction of a Micronaut Core regression: a `@RequestBean`-bound
+Java `record` whose components are all annotated `@Nullable` (jspecify) is
+rejected as `400 Bad Request` when no query parameters are present at all,
+starting with Micronaut Core 5.1.0. The same code works correctly on 5.0.3.
 
-- [Micronaut Maven Plugin documentation](https://micronaut-projects.github.io/micronaut-maven-plugin/latest/)
-## Feature micronaut-aot documentation
+Filed upstream as
+[micronaut-projects/micronaut-core#12738](https://github.com/micronaut-projects/micronaut-core/issues/12738).
 
+See [BUG_DESCRIPTION.md](./BUG_DESCRIPTION.md) for the full writeup (root
+cause, affected files, repro steps, known workaround) and
+[BUG_REPORT.md](./BUG_REPORT.md) for the bug report as submitted.
 
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
+## Quick start
 
+Requires JDK 25 (Micronaut 5.x's own annotation processors are compiled for
+class file version 69 and won't load under earlier JDKs):
 
-## Feature maven-enforcer-plugin documentation
+```bash
+export JAVA_HOME=/path/to/jdk-25
 
+./mvnw clean test
+```
 
-- [https://maven.apache.org/enforcer/maven-enforcer-plugin/](https://maven.apache.org/enforcer/maven-enforcer-plugin/)
-
-
-## Feature serialization-jackson documentation
-
-
-- [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
-
-
+`pom.xml` pins the exact Micronaut Core version under test via a single
+`micronaut.version` property. It's currently set to `5.1.2`, which
+reproduces the bug (`PersonControllerTest.noQueryParamsReturnsOkWithAllFieldsNull`
+fails with `400 Bad Request`). Set it to `5.0.3` and rerun to see all tests
+pass.
