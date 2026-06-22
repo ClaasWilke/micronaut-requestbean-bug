@@ -185,7 +185,54 @@ change — every caller of the bound bean needs an added null-check (or a
 default instance substituted right after binding) to restore the pre-5.1.x
 guarantee that the bean itself is never null.
 
-## Open question, as filed
+## Follow-up finding: this looks intentional, not an oversight
+
+After filing, a closer read of the full `RequestBeanAnnotationBinder.java`
+on the `5.1.x` branch and the complete PR #12632 diff turned up a test the
+PR itself added — for exactly our pattern (a bean with only nullable
+components):
+
+```groovy
+@Introspected
+static class EmptyBean {
+    @Nullable String value
+}
+
+@Get("/request-bean-nullable")
+String requestBeanNull(@RequestBean @Nullable EmptyBean bean) {
+    return bean == null ? "null" : "not-null"
+}
+
+void "test request bean is null when no input is provided"() {
+    expect:
+    client.requestBeanNull(null) == "null"
+}
+```
+
+The only difference from our failing case: that test's parameter is
+`@RequestBean @Nullable EmptyBean` — the *parameter* is nullable, not just
+the bean's own field. So the designed contract appears to be: nullability
+of a `@RequestBean`/`@QueryValue` bean's own components never makes the
+bean itself optional; only nullability on the bound *parameter* does.
+That's a deliberate, regression-tested decision in #12632, not an
+implementation bug.
+
+This changes the resolution of the "open question" below: option (1)
+(infer "bean is optional" from all-nullable components) would directly
+conflict with and break this existing, intentional test. A binder behavior
+change is therefore not the right ask. The real gap looks to be that this
+contract isn't documented anywhere obvious — it's easy to assume
+"all components nullable" is sufficient (it was, by accident, before
+#12608/#12632), with no compiler warning or doc note steering users toward
+adding `@Nullable` on the parameter itself.
+
+This was shared as a
+[follow-up comment](https://github.com/micronaut-projects/micronaut-core/issues/12738#issuecomment-4766421857)
+on the filed issue, leaving the resolution (documentation clarification vs.
+a compile-time hint vs. something else) to maintainer triage rather than
+proposing a binder code change.
+
+## Open question, as filed (superseded by the follow-up finding above)
 
 Whether this should be treated as:
 1. A genuine regression — Micronaut should infer "bean is optional" when all
@@ -197,8 +244,8 @@ Whether this should be treated as:
 
 `BUG_REPORT.md` (and the filed issue,
 [#12738](https://github.com/micronaut-projects/micronaut-core/issues/12738))
-take position (1), since from a user's perspective declaring every
-component of a request-bound record as `@Nullable` is the natural,
+originally took position (1), since from a user's perspective declaring
+every component of a request-bound record as `@Nullable` is the natural,
 idiomatic way to express "this whole filter is optional" — and that
-contract held on 5.0.3. Awaiting maintainer triage to see which way they
-land.
+contract held on 5.0.3. The follow-up finding above shows the maintainers'
+own tests favor (2); awaiting their triage for the final call.

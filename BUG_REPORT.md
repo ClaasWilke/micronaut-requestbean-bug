@@ -168,3 +168,19 @@ the workaround isn't a drop-in annotation change; it requires adding
 null-checks (or substituting a default instance right after binding)
 everywhere the bean is consumed, to restore the pre-5.1.x guarantee that
 the bean itself is never null.
+
+## Addendum 2 (posted as a follow-up comment on #12738)
+
+A closer read of `RequestBeanAnnotationBinder.java` on `5.1.x` and the full
+PR #12632 diff shows the "Suggested fix direction" above is likely the
+wrong ask: #12632 itself added a test for our exact pattern (a bean with
+only nullable components) explicitly asserting that an absent
+`@RequestBean @Nullable EmptyBean` resolves to `null`, not an all-null
+instance. So nullability of the bean's own components never makes the bean
+itself optional by design — only nullability on the bound parameter does.
+That's intentional and regression-tested, not an oversight. See
+`BUG_DESCRIPTION.md`'s "Follow-up finding" section for the detail and the
+[comment thread](https://github.com/micronaut-projects/micronaut-core/issues/12738#issuecomment-4766421857)
+for the full writeup. A documentation clarification (or a compile-time
+hint) looks like the more appropriate fix than a binder behavior change,
+but that's left to maintainer triage.
