@@ -1,5 +1,8 @@
 # Bug Description: `@RequestBean` record with all-nullable components rejected as 400 on Micronaut 5.1.x
 
+**Filed upstream as:**
+[micronaut-projects/micronaut-core#12738](https://github.com/micronaut-projects/micronaut-core/issues/12738)
+
 ## Summary
 
 A REST endpoint that binds optional query parameters via `@RequestBean` into a
@@ -160,9 +163,9 @@ workaround, but it means: code that relied on "every record component is
 under the pre-#12632 behavior) silently breaks on 5.1.x unless the
 `@RequestBean` parameter itself is also annotated nullable.
 
-## Open question for the bug report
+## Open question, as filed
 
-Whether this should be filed as:
+Whether this should be treated as:
 1. A genuine regression — Micronaut should infer "bean is optional" when all
    of its components are individually nullable, without requiring a
    redundant `@Nullable` on the `@RequestBean` parameter; or
@@ -170,7 +173,10 @@ Whether this should be filed as:
    intentional, and projects upgrading to 5.1.x need to add `@Nullable` (or
    `@Nullable` equivalent) on `@RequestBean` parameters explicitly.
 
-The draft in `BUG_REPORT.md` files it as (1), since from a user's
-perspective declaring every component of a request-bound record as
-`@Nullable` is the natural, idiomatic way to express "this whole filter is
-optional" — and that contract held on 5.0.3.
+`BUG_REPORT.md` (and the filed issue,
+[#12738](https://github.com/micronaut-projects/micronaut-core/issues/12738))
+take position (1), since from a user's perspective declaring every
+component of a request-bound record as `@Nullable` is the natural,
+idiomatic way to express "this whole filter is optional" — and that
+contract held on 5.0.3. Awaiting maintainer triage to see which way they
+land.

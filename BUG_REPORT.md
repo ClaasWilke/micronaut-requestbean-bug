@@ -1,13 +1,14 @@
-# Draft Bug Report for micronaut-projects/micronaut-core
+# Bug Report for micronaut-projects/micronaut-core
 
-Drafted for: https://github.com/micronaut-projects/micronaut-core/issues
-(New Issue → Bug Report)
+**Status: submitted.** Filed as
+[micronaut-projects/micronaut-core#12738](https://github.com/micronaut-projects/micronaut-core/issues/12738).
+The content below is the draft as submitted, kept here for reference.
 
-No existing open or closed issue matches this exact scenario (searched for
-`RequestBean`, `jspecify`, `nullable`, `12632` — see "Related issues found"
-below for the closest match, which appears to be the root cause rather than
-a duplicate). The fields below map 1:1 to the repo's Bug Report issue
-template (`.github/ISSUE_TEMPLATE/bug_report.yaml`).
+No existing open or closed issue matched this exact scenario at the time of
+filing (searched for `RequestBean`, `jspecify`, `nullable`, `12632` — see
+"Related issues found" below for the closest match, which appears to be the
+root cause rather than a duplicate). The fields below map 1:1 to the repo's
+Bug Report issue template (`.github/ISSUE_TEMPLATE/bug_report.yaml`).
 
 ---
 
