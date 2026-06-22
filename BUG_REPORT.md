@@ -152,3 +152,19 @@ components:
 @Get("/search")
 public Map<String, Object> search(@RequestBean @Nullable PersonFilter filter) { ... }
 ```
+
+---
+
+## Addendum (posted as a follow-up comment on #12738)
+
+The workaround above has a drawback worth flagging: it doesn't just avoid
+the 400, it changes what `filter` can be. Before the regression, `filter`
+was always a non-null `PersonFilter` instance (only its fields could be
+`null`). With `@Nullable` added to the parameter, `filter` itself can now be
+`null` when no query parameters are present — so every call site that does
+`filter.someField()` without first null-checking `filter` will NPE in
+exactly the case this workaround is meant to fix. In other words, adopting
+the workaround isn't a drop-in annotation change; it requires adding
+null-checks (or substituting a default instance right after binding)
+everywhere the bean is consumed, to restore the pre-5.1.x guarantee that
+the bean itself is never null.

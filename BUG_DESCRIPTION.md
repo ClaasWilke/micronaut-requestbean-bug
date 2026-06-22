@@ -163,6 +163,28 @@ workaround, but it means: code that relied on "every record component is
 under the pre-#12632 behavior) silently breaks on 5.1.x unless the
 `@RequestBean` parameter itself is also annotated nullable.
 
+#### Drawback: the workaround changes what `filter` can be, not just whether the request is rejected
+
+Before the regression (5.0.3, and on 5.1.x without the workaround when at
+least one query parameter is present), `filter` is **always** a non-null
+`PersonFilter` instance — only its individual fields can be `null`. With the
+`@Nullable`-on-parameter workaround, `filter` **itself** can now be `null`
+when no query parameters are present at all. That's a real behavioral
+change at the call site, not just an annotation tweak: any code that called
+`filter.name()`/`filter.age()`/`filter.city()` without a null-check on
+`filter` will now NPE in exactly the case the workaround "fixes". See
+`searchNullableParam` in `PersonController.java`, which has to guard for it
+explicitly:
+
+```java
+result.put("name", filter == null ? null : filter.name());
+```
+
+So adopting the workaround in a real codebase isn't a drop-in annotation
+change — every caller of the bound bean needs an added null-check (or a
+default instance substituted right after binding) to restore the pre-5.1.x
+guarantee that the bean itself is never null.
+
 ## Open question, as filed
 
 Whether this should be treated as:
